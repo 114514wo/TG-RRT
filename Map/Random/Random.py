@@ -3,17 +3,17 @@ import cv2
 import os
 import tkinter as tk
 from tkinter import ttk
-from tkinter import messagebox  # 添加这行导入
+from tkinter import messagebox
 import random
 from math import sqrt
- 
+
 class MapGenerator:
     def __init__(self):
         self.width = 224
         self.height = 224
 
     def generate_point(self, is_start=True):
-        """生成起点或终点"""
+        """Generate start or end point"""
         size = 5
         if is_start:
             x = random.randint(size, self.width // 2 - size)
@@ -23,25 +23,25 @@ class MapGenerator:
         return (x, y)
 
     def check_distance(self, p1, p2):
-        """检查两点间距离"""
+        """Check distance between two points"""
         return sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) >= 150
 
     def draw_point(self, img, center, color):
-        """绘制5x5的起点或终点"""
+        """Draw a 5x5 start or end point"""
         x, y = center
         cv2.rectangle(img, (x - 2, y - 2), (x + 2, y + 2), color, -1)
 
     def generate_rectangle(self, img, density, start=None, end=None):
-        """生成连续的矩形障碍物"""
-        # 清空图像为白色
+        """Generate continuous rectangular obstacles"""
+        # Clear image to white
         img_temp = np.ones_like(img) * 255
 
-        # 生成主要的长方形通道
-        num_long_rects = int(density * 2)  # 根据密度确定长方形数量
+        # Generate main rectangular channels
+        num_long_rects = int(density * 2)  # Determine number of rectangles based on density
         min_length = 80
         max_length = 160
 
-        # 保存起点和终点的区域
+        # Save start and end point regions
         start_region = None
         end_region = None
         if start and end:
@@ -59,21 +59,21 @@ class MapGenerator:
             )
 
         def is_safe_region(x, y, w, h):
-            """检查是否与起点终点区域重叠"""
+            """Check if overlapping with start/end point regions"""
             if not (start_region and end_region):
                 return True
             rect = (x, x + w, y, y + h)
-            # 检查与起点区域的重叠
+            # Check overlap with start region
             if not (rect[0] >= start_region[1] or rect[1] <= start_region[0] or
                     rect[2] >= start_region[3] or rect[3] <= start_region[2]):
                 return False
-            # 检查与终点区域的重叠
+            # Check overlap with end region
             if not (rect[0] >= end_region[1] or rect[1] <= end_region[0] or
                     rect[2] >= end_region[3] or rect[3] <= end_region[2]):
                 return False
             return True
 
-        # 生成水平长方形
+        # Generate horizontal rectangles
         for _ in range(num_long_rects):
             width = random.randint(min_length, max_length)
             height = random.randint(15, 25)
@@ -86,7 +86,7 @@ class MapGenerator:
                     break
                 attempts += 1
 
-        # 生成垂直长方形
+        # Generate vertical rectangles
         for _ in range(num_long_rects):
             width = random.randint(15, 25)
             height = random.randint(min_length, max_length)
@@ -99,7 +99,7 @@ class MapGenerator:
                     break
                 attempts += 1
 
-        # 生成一些连接通道
+        # Generate some connecting channels
         num_connectors = int(density * 3)
         for _ in range(num_connectors):
             width = random.randint(20, 40)
@@ -109,25 +109,25 @@ class MapGenerator:
             if is_safe_region(x, y, width, height):
                 cv2.rectangle(img_temp, (x, y), (x + width, y + height), (0, 0, 0), -1)
 
-        # 确保起点和终点区域是空白的
+        # Ensure start and end point regions are clear
         if start and end:
-            # 清除起点区域的障碍物
+            # Clear obstacles in start region
             cv2.rectangle(img_temp,
                           (start_region[0], start_region[2]),
                           (start_region[1], start_region[3]),
                           (255, 255, 255), -1)
-            # 清除终点区域的障碍物
+            # Clear obstacles in end region
             cv2.rectangle(img_temp,
                           (end_region[0], end_region[2]),
                           (end_region[1], end_region[3]),
                           (255, 255, 255), -1)
 
-        # 将临时图像复制到原图像
+        # Copy temporary image to original image
         img[:] = img_temp
 
     def generate_circles(self, img, density):
-        """生成圆形障碍物"""
-        # 同样将密度值调小
+        """Generate circular obstacles"""
+        # Reduce density value
         num_circles = int((self.width * self.height) * density / 2000)
         for _ in range(num_circles):
             radius = random.randint(5, 15)
@@ -136,36 +136,36 @@ class MapGenerator:
             cv2.circle(img, (x, y), radius, (0, 0, 0), -1)
 
     def generate_map(self, obstacle_type, density):
-        """生成单张地图"""
+        """Generate a single map"""
         img = np.ones((self.height, self.width, 3), dtype=np.uint8) * 255
 
-        # 先生成起点和终点
+        # First generate start and end points
         while True:
             start = self.generate_point(True)
             end = self.generate_point(False)
             if self.check_distance(start, end):
                 break
 
-        # 生成障碍物
-        if obstacle_type == "圆形":
+        # Generate obstacles
+        if obstacle_type == "Circle":
             self.generate_circles(img, density)
-            # 检查起点终点是否与障碍物重合
+            # Check if start/end points overlap with obstacles
             if not ((img[start[1], start[0]] == 255).all() and
                     (img[end[1], end[0]] == 255).all()):
                 return self.generate_map(obstacle_type, density)
-        elif obstacle_type == "矩形":
+        elif obstacle_type == "Rectangle":
             self.generate_rectangle(img, density, start, end)
-        else:  # 混合
+        else:  # Mixed
             self.generate_circles(img, density / 2)
             self.generate_rectangle(img, density / 2, start, end)
-            # 检查起点终点是否与障碍物重合
+            # Check if start/end points overlap with obstacles
             if not ((img[start[1], start[0]] == 255).all() and
                     (img[end[1], end[0]] == 255).all()):
                 return self.generate_map(obstacle_type, density)
 
-        # 绘制起点和终点
-        self.draw_point(img, start, (0, 255, 0))  # 绿色起点
-        self.draw_point(img, end, (255, 0, 0))  # 蓝色终点
+        # Draw start and end points
+        self.draw_point(img, start, (0, 255, 0))  # Green start point
+        self.draw_point(img, end, (255, 0, 0))  # Blue end point
 
         return img
 
@@ -173,30 +173,30 @@ class MapGenerator:
 class GUI:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("地图生成器")
+        self.root.title("Map Generator")
         self.setup_gui()
         self.map_generator = MapGenerator()
 
     def setup_gui(self):
-        # 数量选择
-        tk.Label(self.root, text="生成数量:").grid(row=0, column=0)
+        # Quantity selection
+        tk.Label(self.root, text="Number of maps:").grid(row=0, column=0)
         self.num_maps = tk.Entry(self.root)
         self.num_maps.insert(0, "1")
         self.num_maps.grid(row=0, column=1)
 
-        # 密度选择
-        tk.Label(self.root, text="障碍物密度(1-10):").grid(row=1, column=0)
+        # Density selection
+        tk.Label(self.root, text="Obstacle density (1-10):").grid(row=1, column=0)
         self.density = tk.Scale(self.root, from_=1, to=10, orient=tk.HORIZONTAL)
         self.density.grid(row=1, column=1)
 
-        # 障碍物类型选择
-        tk.Label(self.root, text="障碍物类型:").grid(row=2, column=0)
-        self.obstacle_type = ttk.Combobox(self.root, values=["圆形", "矩形", "混合"])
-        self.obstacle_type.set("圆形")
+        # Obstacle type selection
+        tk.Label(self.root, text="Obstacle type:").grid(row=2, column=0)
+        self.obstacle_type = ttk.Combobox(self.root, values=["Circle", "Rectangle", "Mixed"])
+        self.obstacle_type.set("Circle")
         self.obstacle_type.grid(row=2, column=1)
 
-        # 生成按钮
-        tk.Button(self.root, text="生成地图", command=self.generate).grid(row=3, column=0, columnspan=2)
+        # Generate button
+        tk.Button(self.root, text="Generate Maps", command=self.generate).grid(row=3, column=0, columnspan=2)
 
     def generate(self):
         try:
@@ -204,19 +204,19 @@ class GUI:
             density = self.density.get()
             obs_type = self.obstacle_type.get()
 
-            # 创建保存目录
+            # Create save directory
             desktop = os.path.join(os.path.expanduser("~"), "Desktop")
             save_dir = os.path.join(desktop, "Maps")
             os.makedirs(save_dir, exist_ok=True)
 
-            # 生成并保存地图
+            # Generate and save maps
             for i in range(num):
                 img = self.map_generator.generate_map(obs_type, density)
                 cv2.imwrite(os.path.join(save_dir, f"map_{i + 1}.png"), img)
 
-            messagebox.showinfo("成功", f"已生成{num}张地图并保存至桌面Map文件夹")  # 修改这行
+            messagebox.showinfo("Success", f"Generated {num} maps and saved to Desktop/Maps folder")
         except Exception as e:
-            messagebox.showerror("错误", str(e))  # 修改这行
+            messagebox.showerror("Error", str(e))
 
     def run(self):
         self.root.mainloop()

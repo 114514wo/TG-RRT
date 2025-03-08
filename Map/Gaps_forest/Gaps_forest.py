@@ -6,7 +6,7 @@ from tkinter import ttk
 from tkinter import messagebox  # 添加这行导入
 import random
 from math import sqrt
-
+ 
 class MapGenerator:
     def __init__(self):
         self.width = 224

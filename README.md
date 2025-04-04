@@ -1,5 +1,5 @@
 ﻿# **Our TG-Net code has been uploaded, and all the code is ready.**
-﻿# **You can simply run the train.py to quickly start the training of our net.**
+ # **You can simply run the train.py located in the TG-Net folder to quickly start the trainning of our net.**
 # Dataset Instructions
 
 The dataset file is split into 4 parts:

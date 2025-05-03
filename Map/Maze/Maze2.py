@@ -174,13 +174,13 @@ class MapGenerator:
             if self.check_distance(start, end):
                 break
 
-        if obstacle_type == "圆形":
+        if obstacle_type == "Circle":
             self.generate_circles(img, density)
 
             if not ((img[start[1], start[0]] == 255).all() and
                     (img[end[1], end[0]] == 255).all()):
                 return self.generate_map(obstacle_type, density)
-        elif obstacle_type == "矩形":
+        elif obstacle_type == "Rectangle":
             self.generate_rectangle(img, density, start, end)
         else:  
             self.generate_circles(img, density / 2)
@@ -199,27 +199,27 @@ class MapGenerator:
 class GUI:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("地图生成器")
+        self.root.title("Map Generator")
         self.setup_gui()
         self.map_generator = MapGenerator()
 
     def setup_gui(self):
 
-        tk.Label(self.root, text="生成数量:").grid(row=0, column=0)
+        tk.Label(self.root, text="Number of maps:").grid(row=0, column=0)
         self.num_maps = tk.Entry(self.root)
         self.num_maps.insert(0, "1")
         self.num_maps.grid(row=0, column=1)
 
-        tk.Label(self.root, text="障碍物密度(1-10):").grid(row=1, column=0)
+        tk.Label(self.root, text="Obstacle density (1-10):").grid(row=1, column=0)
         self.density = tk.Scale(self.root, from_=1, to=10, orient=tk.HORIZONTAL)
         self.density.grid(row=1, column=1)
 
-        tk.Label(self.root, text="障碍物类型:").grid(row=2, column=0)
-        self.obstacle_type = ttk.Combobox(self.root, values=["圆形", "矩形", "混合"])
-        self.obstacle_type.set("圆形")
+        tk.Label(self.root, text="Obstacle type:").grid(row=2, column=0)
+        self.obstacle_type = ttk.Combobox(self.root, values=["Circle", "Rectangle", "Mixed"])
+        self.obstacle_type.set("Circle")
         self.obstacle_type.grid(row=2, column=1)
 
-        tk.Button(self.root, text="生成地图", command=self.generate).grid(row=3, column=0, columnspan=2)
+        tk.Button(self.root, text="Generate Map", command=self.generate).grid(row=3, column=0, columnspan=2)
 
     def generate(self):
         try:
@@ -235,9 +235,9 @@ class GUI:
                 img = self.map_generator.generate_map(obs_type, density)
                 cv2.imwrite(os.path.join(save_dir, f"map_{i + 1}.png"), img)
 
-            messagebox.showinfo("成功", f"已生成{num}张地图并保存至桌面Map文件夹")  
+            messagebox.showinfo("Success", f"Generated {num} maps and saved to Desktop/Map folder")  
         except Exception as e:
-            messagebox.showerror("错误", str(e))  
+            messagebox.showerror("Error", str(e))  
 
     def run(self):
         self.root.mainloop()

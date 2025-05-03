@@ -13,7 +13,6 @@ class MapGenerator:
         self.height = 224
 
     def generate_point(self, is_start=True):
-     
         size = 5
         if is_start:
             x = random.randint(size, self.width // 2 - size)
@@ -23,30 +22,24 @@ class MapGenerator:
         return (x, y)
 
     def check_distance(self, p1, p2):
-
         return sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) >= 150
 
     def draw_point(self, img, center, color):
-
         x, y = center
         cv2.rectangle(img, (x - 2, y - 2), (x + 2, y + 2), color, -1)
 
     def generate_rectangle(self, img, density, start=None, end=None):
-
         img_temp = np.ones_like(img) * 255
 
         if start is None or end is None:
             return False
 
         def draw_gapped_rectangle(img, x, y, width, height, gap_y):
-
             cv2.rectangle(img, (x, y), (x + width, gap_y), (0, 0, 0), -1)
-
             cv2.rectangle(img, (x, gap_y + gap_size),
                           (x + width, y + height), (0, 0, 0), -1)
 
         def check_path_exists(img, start_point, end_point):
-
             if start_point is None or end_point is None:
                 return False
 
@@ -75,7 +68,6 @@ class MapGenerator:
 
             return False
 
-
         wall_thickness = 30  
         gap_size = 40  
 
@@ -90,10 +82,8 @@ class MapGenerator:
         obstacle_y = 20
 
         if start[1] < end[1]:
-   
             gap_y = obstacle_y + obstacle_height // 2
         else:
- 
             gap_y = obstacle_y + obstacle_height // 3
 
         draw_gapped_rectangle(img_temp, obstacle_x, obstacle_y,
@@ -103,7 +93,6 @@ class MapGenerator:
             img[:] = img_temp
             return True
         else:
- 
             gap_y = obstacle_y + obstacle_height // 2
             img_temp = np.ones_like(img) * 255
             draw_gapped_rectangle(img_temp, obstacle_x, obstacle_y,
@@ -114,7 +103,6 @@ class MapGenerator:
         return False
 
     def generate_circles(self, img, density):
-
         num_circles = int((self.width * self.height) * density / 2000)
         for _ in range(num_circles):
             radius = random.randint(5, 15)
@@ -123,7 +111,6 @@ class MapGenerator:
             cv2.circle(img, (x, y), radius, (0, 0, 0), -1)
 
     def generate_map(self, obstacle_type, density):
-
         img = np.ones((self.height, self.width, 3), dtype=np.uint8) * 255
 
         while True:
@@ -132,13 +119,13 @@ class MapGenerator:
             if self.check_distance(start, end):
                 break
 
-        if obstacle_type == "圆形":
+        if obstacle_type == "Circular":
             self.generate_circles(img, density)
 
             if not ((img[start[1], start[0]] == 255).all() and
                     (img[end[1], end[0]] == 255).all()):
                 return self.generate_map(obstacle_type, density)
-        elif obstacle_type == "矩形":
+        elif obstacle_type == "Rectangular":
             self.generate_rectangle(img, density, start, end)
         else:  
             self.generate_circles(img, density / 2)
@@ -148,8 +135,8 @@ class MapGenerator:
                     (img[end[1], end[0]] == 255).all()):
                 return self.generate_map(obstacle_type, density)
 
-        self.draw_point(img, start, (0, 255, 0))  
-        self.draw_point(img, end, (255, 0, 0))  
+        self.draw_point(img, start, (0, 255, 0))
+        self.draw_point(img, end, (255, 0, 0))
 
         return img
 
@@ -157,27 +144,26 @@ class MapGenerator:
 class GUI:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("地图生成器")
+        self.root.title("Map Generator")
         self.setup_gui()
         self.map_generator = MapGenerator()
 
     def setup_gui(self):
-
-        tk.Label(self.root, text="生成数量:").grid(row=0, column=0)
+        tk.Label(self.root, text="Number of maps:").grid(row=0, column=0)
         self.num_maps = tk.Entry(self.root)
         self.num_maps.insert(0, "1")
         self.num_maps.grid(row=0, column=1)
 
-        tk.Label(self.root, text="障碍物密度(1-10):").grid(row=1, column=0)
+        tk.Label(self.root, text="Obstacle density (1-10):").grid(row=1, column=0)
         self.density = tk.Scale(self.root, from_=1, to=10, orient=tk.HORIZONTAL)
         self.density.grid(row=1, column=1)
 
-        tk.Label(self.root, text="障碍物类型:").grid(row=2, column=0)
-        self.obstacle_type = ttk.Combobox(self.root, values=["圆形", "矩形", "混合"])
-        self.obstacle_type.set("圆形")
+        tk.Label(self.root, text="Obstacle type:").grid(row=2, column=0)
+        self.obstacle_type = ttk.Combobox(self.root, values=["Circular", "Rectangular", "Mixed"])
+        self.obstacle_type.set("Circular")
         self.obstacle_type.grid(row=2, column=1)
 
-        tk.Button(self.root, text="生成地图", command=self.generate).grid(row=3, column=0, columnspan=2)
+        tk.Button(self.root, text="Generate Maps", command=self.generate).grid(row=3, column=0, columnspan=2)
 
     def generate(self):
         try:
@@ -193,9 +179,9 @@ class GUI:
                 img = self.map_generator.generate_map(obs_type, density)
                 cv2.imwrite(os.path.join(save_dir, f"map_{i + 1}.png"), img)
 
-            messagebox.showinfo("成功", f"已生成{num}张地图并保存至桌面Map文件夹")  # 修改这行
+            messagebox.showinfo("Success", f"Successfully generated {num} maps and saved to the Desktop Map folder")
         except Exception as e:
-            messagebox.showerror("错误", str(e))  # 修改这行
+            messagebox.showerror("Error", str(e))
 
     def run(self):
         self.root.mainloop()

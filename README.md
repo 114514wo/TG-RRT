@@ -12,7 +12,7 @@ The TG-Net file is split into 6 parts:
   
 Usage:
 1. Download all files
-2. Use 7-Zip to open the first file (Datasets.zip.001/TG-Net.zip.001)
+2. Use 7-Zip to open the first file (TG-Net.zip.001)
 3. 7-Zip will automatically merge all parts and extract
 
 ![The network architecture of the TG-Net (revised).](1.png)

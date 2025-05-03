@@ -200,7 +200,7 @@ class PathFinder:
             img_path = os.path.join(self.map_dir, map_file)
             img = cv2.imread(img_path)
             if img is None:
-                print(f"无法读取地图: {map_file}")
+                print(f"Cannot read map: {map_file}")
                 return
 
             binary = cv2.threshold(
@@ -211,7 +211,7 @@ class PathFinder:
             start = self.find_colored_point(img, 'green')
             goal = self.find_colored_point(img, 'blue')
             if not (start and goal):
-                print(f"无法找到起点或终点: {map_file}")
+                print(f"Cannot find start or goal point: {map_file}")
                 return
 
             kernel = np.ones((9, 9), np.uint8)
@@ -221,20 +221,20 @@ class PathFinder:
 
             path = self.a_star(binary, start, goal)
             if not path:
-                print(f"无法找到路径: {map_file}")
+                print(f"Cannot find path: {map_file}")
                 return
 
             enlarged_path = self.create_enlarged_path_image(path, img.shape[:2])
             cv2.imwrite(os.path.join(self.enlarged_dir, f"enlarged_{map_file}"), enlarged_path)
-            print(f"成功处理地图: {map_file}")
+            print(f"Successfully processed map: {map_file}")
 
         except Exception as e:
-            print(f"处理地图 {map_file} 时发生错误: {str(e)}")
+            print(f"Error processing map {map_file}: {str(e)}")
 
     def process_all_maps(self):
         
         if not os.path.exists(self.map_dir):
-            print("Map文件夹不存在")
+            print("Map folder does not exist")
             return
 
         map_files = sorted(
@@ -243,7 +243,7 @@ class PathFinder:
         )
 
         for map_file in map_files:
-            print(f"\n开始处理地图: {map_file}")
+            print(f"\nStarting to process map: {map_file}")
             self.process_map(map_file)
 
 

@@ -33,15 +33,14 @@ class MapGenerator:
 
     def generate_rectangle(self, img, density, start=None, end=None):
         """Generate continuous rectangular obstacles"""
-        # Clear image to white
+       
         img_temp = np.ones_like(img) * 255
-
-        # Generate main rectangular channels
-        num_long_rects = int(density * 2)  # Determine number of rectangles based on density
+       
+        num_long_rects = int(density * 2)  
         min_length = 80
         max_length = 160
 
-        # Save start and end point regions
+       
         start_region = None
         end_region = None
         if start and end:
@@ -63,17 +62,17 @@ class MapGenerator:
             if not (start_region and end_region):
                 return True
             rect = (x, x + w, y, y + h)
-            # Check overlap with start region
+            
             if not (rect[0] >= start_region[1] or rect[1] <= start_region[0] or
                     rect[2] >= start_region[3] or rect[3] <= start_region[2]):
                 return False
-            # Check overlap with end region
+           
             if not (rect[0] >= end_region[1] or rect[1] <= end_region[0] or
                     rect[2] >= end_region[3] or rect[3] <= end_region[2]):
                 return False
             return True
 
-        # Generate horizontal rectangles
+        
         for _ in range(num_long_rects):
             width = random.randint(min_length, max_length)
             height = random.randint(15, 25)
@@ -86,7 +85,7 @@ class MapGenerator:
                     break
                 attempts += 1
 
-        # Generate vertical rectangles
+        
         for _ in range(num_long_rects):
             width = random.randint(15, 25)
             height = random.randint(min_length, max_length)
@@ -99,7 +98,7 @@ class MapGenerator:
                     break
                 attempts += 1
 
-        # Generate some connecting channels
+        
         num_connectors = int(density * 3)
         for _ in range(num_connectors):
             width = random.randint(20, 40)
@@ -109,25 +108,25 @@ class MapGenerator:
             if is_safe_region(x, y, width, height):
                 cv2.rectangle(img_temp, (x, y), (x + width, y + height), (0, 0, 0), -1)
 
-        # Ensure start and end point regions are clear
+      
         if start and end:
-            # Clear obstacles in start region
+           
             cv2.rectangle(img_temp,
                           (start_region[0], start_region[2]),
                           (start_region[1], start_region[3]),
                           (255, 255, 255), -1)
-            # Clear obstacles in end region
+            
             cv2.rectangle(img_temp,
                           (end_region[0], end_region[2]),
                           (end_region[1], end_region[3]),
                           (255, 255, 255), -1)
 
-        # Copy temporary image to original image
+        
         img[:] = img_temp
 
     def generate_circles(self, img, density):
         """Generate circular obstacles"""
-        # Reduce density value
+       
         num_circles = int((self.width * self.height) * density / 2000)
         for _ in range(num_circles):
             radius = random.randint(5, 15)
@@ -139,33 +138,33 @@ class MapGenerator:
         """Generate a single map"""
         img = np.ones((self.height, self.width, 3), dtype=np.uint8) * 255
 
-        # First generate start and end points
+        
         while True:
             start = self.generate_point(True)
             end = self.generate_point(False)
             if self.check_distance(start, end):
                 break
 
-        # Generate obstacles
+       
         if obstacle_type == "Circle":
             self.generate_circles(img, density)
-            # Check if start/end points overlap with obstacles
+            
             if not ((img[start[1], start[0]] == 255).all() and
                     (img[end[1], end[0]] == 255).all()):
                 return self.generate_map(obstacle_type, density)
         elif obstacle_type == "Rectangle":
             self.generate_rectangle(img, density, start, end)
-        else:  # Mixed
+        else: 
             self.generate_circles(img, density / 2)
             self.generate_rectangle(img, density / 2, start, end)
-            # Check if start/end points overlap with obstacles
+            
             if not ((img[start[1], start[0]] == 255).all() and
                     (img[end[1], end[0]] == 255).all()):
                 return self.generate_map(obstacle_type, density)
 
-        # Draw start and end points
-        self.draw_point(img, start, (0, 255, 0))  # Green start point
-        self.draw_point(img, end, (255, 0, 0))  # Blue end point
+        
+        self.draw_point(img, start, (0, 255, 0))  
+        self.draw_point(img, end, (255, 0, 0))  
 
         return img
 

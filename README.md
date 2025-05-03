@@ -1,12 +1,5 @@
 ﻿# **Our TG-Net code has been uploaded, and all the code is ready.**
  # **You can simply run the train.py located in the TG-Net folder to quickly start the training of our net.**
-# Dataset Instructions
-
-The dataset file is split into 4 parts:
-- Datasets.zip.001
-- Datasets.zip.002
-- Datasets.zip.003
-- Datasets.zip.004
 
 # TG-Net Instructions
 The TG-Net file is split into 6 parts:
